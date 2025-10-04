@@ -1,0 +1,14 @@
+# Source files that shouldn't be in npm package
+example/
+.gitignore
+.git/
+*.log
+.DS_Store
+
+# Development files
+.vscode/
+.idea/
+
+# Test files
+test/
+*.test.js

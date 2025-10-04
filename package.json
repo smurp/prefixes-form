@@ -1,0 +1,47 @@
+{
+  "name": "@mmmlib/prefixes-form",
+  "version": "1.0.0",
+  "description": "A web component for managing RDF namespace prefixes with built-in common vocabularies",
+  "main": "dist/prefixes-form.js",
+  "module": "src/prefixes-form.js",
+  "types": "index.d.ts",
+  "files": [
+    "dist/",
+    "src/",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:minify",
+    "build:minify": "terser src/prefixes-form.js -o dist/prefixes-form.min.js --compress --mangle",
+    "dev": "python3 -m http.server 8000",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smurp/prefixes-form.git"
+  },
+  "keywords": [
+    "web-components",
+    "webcomponents",
+    "rdf",
+    "prefixes",
+    "namespaces",
+    "linked-data",
+    "semantic-web",
+    "turtle",
+    "n3",
+    "custom-elements"
+  ],
+  "author": "smurp",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smurp/prefixes-form/issues"
+  },
+  "homepage": "https://github.com/smurp/prefixes-form#readme",
+  "devDependencies": {
+    "terser": "^5.19.0"
+  }
+}
