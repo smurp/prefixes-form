@@ -5,7 +5,7 @@
  */
 class PrefixesForm extends HTMLElement {
     static get observedAttributes() {
-        return [];
+        return ['empty'];
     }
     
     constructor() {
@@ -25,9 +25,6 @@ class PrefixesForm extends HTMLElement {
         this.make_handles();
         this.attach_handlers();
         
-        // Load initial prefixes
-        this.fillAll(this.DEFAULT_ALL);
-        this.fillChosen(this._kb ? {} : this.DEFAULT_CHOSEN);
     }
     
     // Converted prefix collections from TTL to POJOs
@@ -447,7 +444,54 @@ class PrefixesForm extends HTMLElement {
     
     // Lifecycle callbacks
     connectedCallback() {
-        // Component is connected to the DOM
+        // Check for declarative prefix-entry children
+        const entries = this.querySelectorAll('prefix-entry');
+        const isEmpty = this.hasAttribute('empty');
+        
+        if (entries.length > 0) {
+            // DECLARATIVE MODE: Use only declared prefixes
+            console.log('DECLARATIVE MODE: Found', entries.length, 'prefix entries');
+            
+            entries.forEach(entry => {
+                const prefix = entry.getAttribute('prefix');
+                const expansion = entry.getAttribute('expansion');
+                const selected = entry.hasAttribute('selected');
+                const tooltip = entry.getAttribute('tooltip') || entry.getAttribute('title');
+                
+                if (prefix && expansion) {
+                    this.all[prefix] = expansion;
+                    
+                    if (tooltip) {
+                        if (!this._tooltips) this._tooltips = {};
+                        this._tooltips[prefix] = tooltip;
+                    }
+                    
+                    this.add_prefix_to_list(prefix, expansion, {
+                        type: 'checkbox',
+                        checked: selected ? 'checked' : undefined,
+                        title: tooltip
+                    });
+                    
+                    if (selected) {
+                        this.chosen[prefix] = expansion;
+                    }
+                }
+            });
+            
+            // Remove declarative entries from DOM
+            entries.forEach(e => e.remove());
+            
+        } else if (isEmpty) {
+            // EMPTY MODE: Start completely blank
+            console.log('EMPTY MODE: No prefixes loaded');
+            // Don't call fillAll or fillChosen - stay empty
+            
+        } else {
+            // DEFAULT MODE: Load standard prefixes
+            console.log('DEFAULT MODE: Loading standard prefixes');
+            this.fillAll(this.DEFAULT_ALL);
+            this.fillChosen(this._kb ? this._kb.prefixes : this.DEFAULT_CHOSEN);
+        }
     }
     
     disconnectedCallback() {

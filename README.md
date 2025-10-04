@@ -13,6 +13,7 @@ A standalone web component for managing RDF namespace prefixes with built-in com
 - 📢 **Event-driven** - Emits custom events for all prefix operations
 - 🎨 **Shadow DOM** - Fully encapsulated styling
 - ✨ **Dynamic management** - Add, enable/disable prefixes on the fly
+- 🎛️ **Three configuration modes** - Default, empty, or declarative initialization
 
 ## Installation
 
@@ -41,6 +42,49 @@ Or use directly from CDN:
 </body>
 </html>
 ```
+
+### Three Configuration Modes
+
+The `<prefixes-form>` component supports three distinct initialization modes:
+
+#### 1. Default Mode (Standard RDF Prefixes)
+
+Empty tag loads common RDF prefixes automatically:
+
+```html
+<prefixes-form></prefixes-form>
+```
+
+Includes: `dc`, `foaf`, `rdf`, `rdfs`, `schema`, `skos`, `wp`, `owl2`
+
+#### 2. Empty Mode (User Builds From Scratch)
+
+Start completely blank for domain-specific applications:
+
+```html
+<prefixes-form empty></prefixes-form>
+```
+
+No prefixes are pre-loaded. Users add all prefixes manually.
+
+#### 3. Declarative Mode (Custom Prefix Set)
+
+Pre-configure with specific prefixes using `<prefix-entry>` elements:
+
+```html
+<prefixes-form>
+    <prefix-entry prefix="ex" expansion="http://example.com/" />
+    <prefix-entry prefix="myapp" expansion="http://myapp.org/ns#" selected />
+    <prefix-entry prefix="data" expansion="http://myapp.org/data#" 
+                  tooltip="Application data namespace" selected />
+</prefixes-form>
+```
+
+**`<prefix-entry>` attributes:**
+- `prefix` (required) - The prefix name
+- `expansion` (required) - The full IRI
+- `selected` (optional) - Pre-check this prefix
+- `tooltip` or `title` (optional) - Helpful description shown on hover
 
 ### With Knowledge Base Integration
 

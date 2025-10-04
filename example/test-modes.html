@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prefixes Form - Three Modes Test</title>
+    <script type="module" src="../src/prefixes-form.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 2em;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        section { 
+            margin-bottom: 3em;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 { 
+            margin-top: 0;
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 0.5em;
+        }
+        .description {
+            background: #f0f8ff;
+            padding: 1em;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 1em;
+            font-style: italic;
+        }
+        button {
+            margin: 0.5em 0.5em 0.5em 0;
+            padding: 0.5em 1em;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .output {
+            min-height: 3em;
+            background: #fafafa;
+            border: 1px solid #ddd;
+            padding: 1em;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔖 Prefixes Form - Three Modes Demo</h1>
+    
+    <section>
+        <h2>Mode 1: Default (Standard RDF Prefixes)</h2>
+        <div class="description">
+            Empty tag loads standard RDF prefixes: dc, foaf, rdf, rdfs, schema, skos, wp, owl2
+        </div>
+        <prefixes-form id="default"></prefixes-form>
+        <button onclick="testDefault()">Get Selected Prefixes</button>
+        <button onclick="testDefaultAll()">Get All Available</button>
+        <div id="output-default" class="output"></div>
+    </section>
+    
+    <section>
+        <h2>Mode 2: Empty (User Adds Everything)</h2>
+        <div class="description">
+            Starts completely blank. User must add all prefixes manually. Perfect for domain-specific apps.
+        </div>
+        <prefixes-form id="empty" empty></prefixes-form>
+        <button onclick="testEmpty()">Get Selected Prefixes</button>
+        <button onclick="addToEmpty()">Add 'myns' Programmatically</button>
+        <div id="output-empty" class="output"></div>
+    </section>
+    
+    <section>
+        <h2>Mode 3: Declarative (Custom Prefix Set)</h2>
+        <div class="description">
+            Pre-configured with specific prefixes. Note 'bartism' and 'simpson' are pre-selected.
+        </div>
+        <prefixes-form id="custom">
+            <prefix-entry prefix="homerism" expansion="https://why.eye.ough.ta/" 
+                          tooltip="Homer's namespace" />
+            <prefix-entry prefix="bartism" expansion="https://eat.my/shorts#" 
+                          tooltip="Bart's rebellious vocabulary" selected />
+            <prefix-entry prefix="simpson" expansion="http://springfield.tv/family#" 
+                          tooltip="The Simpson family" selected />
+            <prefix-entry prefix="mmm" expansion="http://mmm.example.org/v1#"
+                          tooltip="Multi-perspectival Mutable Mapping" />
+        </prefixes-form>
+        <button onclick="testCustom()">Get Selected Prefixes</button>
+        <button onclick="testCustomAll()">Get All Available</button>
+        <div id="output-custom" class="output"></div>
+    </section>
+    
+    <section>
+        <h2>Code Examples</h2>
+        
+        <h3>Default Mode:</h3>
+        <pre><code>&lt;prefixes-form&gt;&lt;/prefixes-form&gt;</code></pre>
+        
+        <h3>Empty Mode:</h3>
+        <pre><code>&lt;prefixes-form empty&gt;&lt;/prefixes-form&gt;</code></pre>
+        
+        <h3>Declarative Mode:</h3>
+        <pre><code>&lt;prefixes-form&gt;
+  &lt;prefix-entry prefix="homerism" expansion="https://why.eye.ough.ta/" /&gt;
+  &lt;prefix-entry prefix="bartism" expansion="https://eat.my/shorts#" selected /&gt;
+  &lt;prefix-entry prefix="simpson" expansion="http://springfield.tv/family#" 
+                tooltip="The Simpson family" selected /&gt;
+&lt;/prefixes-form&gt;</code></pre>
+    </section>
+    
+    <script>
+        function testDefault() {
+            const form = document.getElementById('default');
+            const selected = form.getSelectedPrefixes();
+            document.getElementById('output-default').textContent = 
+                JSON.stringify(selected, null, 2);
+        }
+        
+        function testDefaultAll() {
+            const form = document.getElementById('default');
+            const all = form.getAllPrefixes();
+            document.getElementById('output-default').textContent = 
+                `All available: ${Object.keys(all).length} prefixes\n` +
+                JSON.stringify(all, null, 2);
+        }
+        
+        function testEmpty() {
+            const form = document.getElementById('empty');
+            const selected = form.getSelectedPrefixes();
+            const all = form.getAllPrefixes();
+            document.getElementById('output-empty').textContent = 
+                `Selected: ${Object.keys(selected).length}\n` +
+                `Available: ${Object.keys(all).length}\n` +
+                JSON.stringify({ selected, all }, null, 2);
+        }
+        
+        function addToEmpty() {
+            const form = document.getElementById('empty');
+            form.addPrefix('myns', 'http://example.com/myns#');
+            document.getElementById('output-empty').textContent = 
+                'Added myns prefix! Now click "Get Selected Prefixes" to see it.';
+        }
+        
+        function testCustom() {
+            const form = document.getElementById('custom');
+            const selected = form.getSelectedPrefixes();
+            document.getElementById('output-custom').textContent = 
+                JSON.stringify(selected, null, 2);
+        }
+        
+        function testCustomAll() {
+            const form = document.getElementById('custom');
+            const all = form.getAllPrefixes();
+            document.getElementById('output-custom').textContent = 
+                `All available: ${Object.keys(all).length} prefixes\n` +
+                JSON.stringify(all, null, 2);
+        }
+        
+        // Auto-test on load
+        setTimeout(() => {
+            console.log('=== Auto-test Results ===');
+            console.log('Default selected:', 
+                document.getElementById('default').getSelectedPrefixes());
+            console.log('Empty selected:', 
+                document.getElementById('empty').getSelectedPrefixes());
+            console.log('Custom selected:', 
+                document.getElementById('custom').getSelectedPrefixes());
+        }, 100);
+    </script>
+</body>
+</html>
