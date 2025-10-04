@@ -15,7 +15,7 @@
   "scripts": {
     "build": "npm run build:minify",
     "build:minify": "terser src/prefixes-form.js -o dist/prefixes-form.min.js --compress --mangle",
-    "dev": "python3 -m http.server 8000",
+    "dev": "npx http-server . -p 8000 -c-1",
     "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -36,7 +36,7 @@
     "custom-elements"
   ],
   "author": "smurp",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/smurp/prefixes-form/issues"
   },

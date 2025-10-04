@@ -150,7 +150,7 @@ class PrefixesForm extends HTMLElement {
     }
     
     render() {
-        this.shadowRoot.innerHTML = \`
+        this.shadowRoot.innerHTML = `
             <style>
                 :host {
                     display: block;
@@ -239,7 +239,7 @@ class PrefixesForm extends HTMLElement {
                     </div>
                 </fieldset>
             </form>
-        \`;
+        `;
     }
     
     make_handles() {
