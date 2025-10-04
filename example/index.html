@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrefixesForm Demo</title>
+    <script type="module" src="../src/prefixes-form.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .event-log {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .event-log div {
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>PrefixesForm Web Component Demo</h1>
+    
+    <div class="demo-section">
+        <h2>Basic Usage</h2>
+        <p>The component loads with default RDF prefixes pre-selected:</p>
+        <prefixes-form id="basic-form"></prefixes-form>
+    </div>
+
+    <div class="demo-section">
+        <h2>Event Monitoring</h2>
+        <p>All interactions with the form trigger events:</p>
+        <prefixes-form id="event-form"></prefixes-form>
+        <h3>Event Log:</h3>
+        <div id="event-log" class="event-log"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>Programmatic Control</h2>
+        <prefixes-form id="controlled-form"></prefixes-form>
+        <div class="controls">
+            <button onclick="addCustomPrefix()">Add Custom Prefix</button>
+            <button onclick="getSelected()">Get Selected Prefixes</button>
+            <button onclick="getAll()">Get All Prefixes</button>
+            <button onclick="simulateKB()">Simulate KB Integration</button>
+        </div>
+        <h3>Output:</h3>
+        <pre id="output"></pre>
+    </div>
+
+    <div class="demo-section">
+        <h2>Code Examples</h2>
+        <h3>Basic HTML:</h3>
+        <pre><code>&lt;script type="module" src="path/to/prefixes-form.js">&lt;/script>
+&lt;prefixes-form>&lt;/prefixes-form></code></pre>
+        
+        <h3>With Event Handling:</h3>
+        <pre><code>const form = document.querySelector('prefixes-form');
+
+form.addEventListener('prefix-added', (e) => {
+    console.log('Added:', e.detail.prefix, '->', e.detail.expansion);
+});
+
+form.addEventListener('prefix-enabled', (e) => {
+    console.log('Enabled:', e.detail.prefix);
+});</code></pre>
+
+        <h3>Knowledge Base Integration:</h3>
+        <pre><code>form.kb = {
+    prefixes: {
+        "myapp": "http://example.com/app#"
+    },
+    addPrefix: (prefix, expansion) => {
+        // Handle prefix addition in your KB
+    }
+};</code></pre>
+    </div>
+
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event monitoring demo
+            const eventForm = document.getElementById('event-form');
+            const eventLog = document.getElementById('event-log');
+            
+            function logEvent(eventName, detail) {
+                const entry = document.createElement('div');
+                const time = new Date().toLocaleTimeString();
+                entry.textContent = `[${time}] ${eventName}: ${JSON.stringify(detail)}`;
+                eventLog.insertBefore(entry, eventLog.firstChild);
+                
+                // Keep only last 10 events
+                while (eventLog.children.length > 10) {
+                    eventLog.removeChild(eventLog.lastChild);
+                }
+            }
+            
+            eventForm.addEventListener('prefix-added', (e) => {
+                logEvent('prefix-added', e.detail);
+            });
+            
+            eventForm.addEventListener('prefix-enabled', (e) => {
+                logEvent('prefix-enabled', e.detail);
+            });
+            
+            eventForm.addEventListener('prefix-disabled', (e) => {
+                logEvent('prefix-disabled', e.detail);
+            });
+            
+            // Programmatic control demo
+            const controlledForm = document.getElementById('controlled-form');
+            const output = document.getElementById('output');
+            
+            window.addCustomPrefix = function() {
+                const prefix = prompt('Enter prefix (e.g., "myapp"):');
+                const expansion = prompt('Enter expansion URL:');
+                
+                if (prefix && expansion) {
+                    controlledForm.addPrefix(prefix, expansion);
+                    output.textContent = `Added: ${prefix} -> ${expansion}`;
+                }
+            };
+            
+            window.getSelected = function() {
+                const selected = controlledForm.getSelectedPrefixes();
+                output.textContent = JSON.stringify(selected, null, 2);
+            };
+            
+            window.getAll = function() {
+                const all = controlledForm.getAllPrefixes();
+                output.textContent = JSON.stringify(all, null, 2);
+            };
+            
+            window.simulateKB = function() {
+                // Simulate a knowledge base integration
+                const mockKB = {
+                    prefixes: {
+                        "test": "http://test.example.com/",
+                        "demo": "http://demo.example.com/"
+                    },
+                    addPrefix: (prefix, expansion) => {
+                        output.textContent = `KB received: ${prefix} -> ${expansion}`;
+                    },
+                    addGraphEventListener: (event, handler) => {
+                        console.log(`KB listening for: ${event}`);
+                    }
+                };
+                
+                controlledForm.kb = mockKB;
+                output.textContent = 'Knowledge base integrated. Added test and demo prefixes.';
+            };
+            
+            // Wait a bit to ensure component is fully initialized
+            setTimeout(() => {
+                // Log initial state
+                logEvent('component-loaded', { 
+                    prefixCount: Object.keys(eventForm.getSelectedPrefixes()).length 
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
