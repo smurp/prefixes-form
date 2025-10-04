@@ -220,12 +220,6 @@ class PrefixesForm extends HTMLElement {
             </style>
             <form>
                 <h3>Prefixes</h3>
-                <details style="color:red">
-                    <summary>known issues</summary>
-                    <li>PURPOSE: the selected prefixes populate the CURIE and URL selectors in CreateTriple</li>
-                    <li>WIP: there is no 'memory', so each time you open a KB you need to select the prefixes again</li>
-                    <li>WIP: deselecting prefixes should remove them from the SELECTs in CreateTriple</li>
-                </details>
                 <fieldset class="adder">
                     <legend>add</legend>
                     <input type="text" name="new_prefix" pattern="[a-zA-Z]*" required/>:
