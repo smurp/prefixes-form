@@ -1,6 +1,6 @@
 # prefixes-form
 
-A standalone web component for managing RDF namespace prefixes with built-in common vocabularies. Part of the MMM (Multi-perspectival Mutable Mapping) ecosystem.
+A standalone web component for managing RDF namespace prefixes with built-in common vocabularies. Part of the MMM (Merged Mental Model) ecosystem.
 
 ![npm version](https://img.shields.io/npm/v/@mmmlib/prefixes-form.svg)
 ![license](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)
