@@ -1,6 +1,6 @@
 {
   "name": "@mmmlib/prefixes-form",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "A web component for managing RDF namespace prefixes with built-in common vocabularies",
   "main": "dist/prefixes-form.js",
   "module": "src/prefixes-form.js",
@@ -43,5 +43,14 @@
   "homepage": "https://github.com/smurp/prefixes-form#readme",
   "devDependencies": {
     "terser": "^5.19.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/prefixes-form.js",
+      "default": "./src/prefixes-form.js"
+    },
+    "./src/*": "./src/*",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
   }
 }
