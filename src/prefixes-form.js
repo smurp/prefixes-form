@@ -61,7 +61,7 @@ class PrefixesForm extends HTMLElement {
             "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
             "sc": "http://iiif.io/api/presentation/2#",
-            "schema": "http://schema.org/",
+            "schema": "https://schema.org/",
             "sg": "http://example.com/sg/",
             "sioc": "http://rdfs.org/sioc/ns#",
             "skos": "http://www.w3.org/2004/02/skos/core#",
