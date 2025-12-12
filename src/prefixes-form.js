@@ -24,7 +24,6 @@ class PrefixesForm extends HTMLElement {
         this.render();
         this.make_handles();
         this.attach_handlers();
-        
     }
     
     // Converted prefix collections from TTL to POJOs
@@ -61,7 +60,7 @@ class PrefixesForm extends HTMLElement {
             "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
             "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
             "sc": "http://iiif.io/api/presentation/2#",
-            "schema": "https://schema.org/",
+            "schema": "http://schema.org/",
             "sg": "http://example.com/sg/",
             "sioc": "http://rdfs.org/sioc/ns#",
             "skos": "http://www.w3.org/2004/02/skos/core#",
@@ -178,6 +177,7 @@ class PrefixesForm extends HTMLElement {
                     flex-direction: row;
                     margin-bottom: 0;
                     font-weight: normal;
+                    align-items: center;
                 }
                 .prefList label span:first-child {
                     width: 5em;
@@ -185,6 +185,22 @@ class PrefixesForm extends HTMLElement {
                 .prefList label span:first-child::after {
                     content: ":";
                     margin-left: 1px;
+                }
+                .prefList label .rm-btn {
+                    margin-left: 4px;
+                    padding: 0 4px;
+                    font-size: 10px;
+                    cursor: pointer;
+                    background: #f0f0f0;
+                    border: 1px solid #ccc;
+                    border-radius: 3px;
+                    color: #666;
+                    line-height: 1;
+                }
+                .prefList label .rm-btn:hover {
+                    background: #ffcccc;
+                    border-color: #cc0000;
+                    color: #cc0000;
                 }
                 .adder {
                     display: flex;
@@ -196,16 +212,6 @@ class PrefixesForm extends HTMLElement {
                 .adder input, .adder button {
                     display: inline-block;
                     vertical-align: middle;
-                    padding: 0px;
-                }
-                .adder new_prefix {
-                    display: inline-block;
-                    width: 5em;
-                }
-                .adder input {
-                    width: inherit;
-                    margin: 0;
-                    font-size: normal;
                     padding: 0;
                 }
                 button {
@@ -219,7 +225,7 @@ class PrefixesForm extends HTMLElement {
                 <h3>Prefixes</h3>
                 <fieldset class="adder">
                     <legend>add</legend>
-                    <input type="text" name="new_prefix" pattern="[a-zA-Z]*" required/>:
+                    <input type="text" name="new_prefix" pattern="[a-zA-Z][a-zA-Z0-9_-]*" required/>:
                     <button disabled>+</button>
                     <input type="url" name="new_expansion" required/>
                 </fieldset>
@@ -272,7 +278,6 @@ class PrefixesForm extends HTMLElement {
             this.chosen[prefix] = expansion;
             this.addPrefix_upstream(prefix, expansion);
             
-            // Emit custom event
             this.dispatchEvent(new CustomEvent('prefix-enabled', {
                 detail: { prefix, expansion },
                 bubbles: true,
@@ -281,7 +286,6 @@ class PrefixesForm extends HTMLElement {
         } else {
             delete this.chosen[prefix];
             
-            // Emit custom event
             this.dispatchEvent(new CustomEvent('prefix-disabled', {
                 detail: { prefix, expansion },
                 bubbles: true,
@@ -314,13 +318,55 @@ class PrefixesForm extends HTMLElement {
         if (this.validate_adder()) {
             this.add_prefix_to_list(prefix, expansion, checkboxAttrs);
             
-            // Emit custom event
             this.dispatchEvent(new CustomEvent('prefix-added', {
                 detail: { prefix, expansion },
                 bubbles: true,
                 composed: true
             }));
         }
+    }
+    
+    /**
+     * Find the label element for a given prefix
+     * @param {string} prefix - The prefix to find
+     * @returns {HTMLElement|null} The label element or null
+     */
+    _findLabelForPrefix(prefix) {
+        for (const label of this.prefList.children) {
+            const span = label.querySelector('span:first-child');
+            if (span && span.innerText === prefix) {
+                return label;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Find the checkbox for a given prefix
+     * @param {string} prefix - The prefix to find
+     * @returns {HTMLInputElement|null} The checkbox element or null
+     */
+    _findCheckboxForPrefix(prefix) {
+        const label = this._findLabelForPrefix(prefix);
+        return label ? label.querySelector('input[type="checkbox"]') : null;
+    }
+    
+    /**
+     * Check if a prefix is currently engaged (selected/checked)
+     * @param {string} prefix - The prefix to check
+     * @returns {boolean} True if engaged
+     */
+    isEngaged(prefix) {
+        return prefix in this.chosen;
+    }
+    
+    /**
+     * Check if a prefix exists in the list (engaged or not)
+     * @param {string} prefix - The prefix to check
+     * @returns {boolean} True if in list
+     */
+    hasPrefix(prefix) {
+        return prefix in this.all;
     }
     
     add_prefix_to_list(prefix, expansion, checkboxAttrs) {
@@ -333,13 +379,26 @@ class PrefixesForm extends HTMLElement {
         const input = this.crElem('input', checkboxAttrs);
         input.onchange = this.handle_checkbox_change.bind(this);
         
+        // Create remove button
+        const rmBtn = this.crElem('button', { 
+            class: 'rm-btn', 
+            type: 'button',
+            title: `Remove ${prefix}`
+        }, ['×']);
+        rmBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.rmPrefix(prefix);
+        };
+        
         const label = this.crElem('label', {}, [
             this.crElem('span', {}, [prefix]),
             input,
-            this.crElem('a', { href: expansion, target: '_blank' }, [expansion])
+            this.crElem('a', { href: expansion, target: '_blank' }, [expansion]),
+            rmBtn
         ]);
         
-        this.insert_sortedly(label, prefix, !!checkboxAttrs.checked);
+        this.insert_sortedly(label, prefix, !checkboxAttrs.checked);
     }
     
     insert_sortedly(labelElem, prefix, isChecked) {
@@ -362,6 +421,7 @@ class PrefixesForm extends HTMLElement {
             }
             
             if (prefix === childPrefix) {
+                // Replace existing entry
                 childLabel.insertAdjacentElement('beforebegin', labelElem);
                 childLabel.remove();
                 return;
@@ -382,7 +442,7 @@ class PrefixesForm extends HTMLElement {
     }
     
     /**
-     * Add multiple prefixes at once
+     * Add multiple prefixes at once (engaged/selected)
      * @param {Object} prefixes - Object with prefix:IRI pairs
      */
     addPrefixes(prefixes) {
@@ -392,7 +452,7 @@ class PrefixesForm extends HTMLElement {
     }
     
     /**
-     * Add a single prefix
+     * Add a single prefix (engaged/selected)
      * @param {string} prefix - The prefix to add
      * @param {string} iri - The IRI expansion
      */
@@ -401,26 +461,35 @@ class PrefixesForm extends HTMLElement {
     }
     
     /**
-     * Fill chosen prefixes
+     * Fill chosen prefixes (idempotent - won't duplicate)
      * @param {Object} prefixesObj - Object with prefix:IRI pairs
      */
     fillChosen(prefixesObj) {
         if (!prefixesObj) return;
         
         for (const [prefix, expansion] of Object.entries(prefixesObj)) {
+            // Skip if already in chosen with same expansion
+            if (this.chosen[prefix] === expansion) {
+                continue;
+            }
             this.chosen[prefix] = expansion;
+            this.all[prefix] = expansion;
             this.add_prefix_to_list(prefix, expansion, { type: 'checkbox', checked: 'checked' });
         }
     }
     
     /**
-     * Fill all available prefixes
+     * Fill all available prefixes (idempotent - won't duplicate)
      * @param {Object} prefixesObj - Object with prefix:IRI pairs
      */
     fillAll(prefixesObj) {
         if (!prefixesObj) return;
         
         for (const [prefix, expansion] of Object.entries(prefixesObj)) {
+            // Skip if already in all with same expansion
+            if (this.all[prefix] === expansion) {
+                continue;
+            }
             this.all[prefix] = expansion;
             this.add_prefix_to_list(prefix, expansion, { type: 'checkbox' });
         }
@@ -440,6 +509,164 @@ class PrefixesForm extends HTMLElement {
      */
     getAllPrefixes() {
         return { ...this.all };
+    }
+    
+    // =========================================================================
+    // NEW API METHODS
+    // =========================================================================
+    
+    /**
+     * Engage (select/check) a prefix that's already in the list
+     * @param {string} prefix - The prefix to engage
+     * @returns {boolean} True if state changed, false if already engaged or not found
+     */
+    engagePrefix(prefix) {
+        if (!this.hasPrefix(prefix)) {
+            console.warn(`engagePrefix: prefix '${prefix}' not in list`);
+            return false;
+        }
+        if (this.isEngaged(prefix)) {
+            return false; // Already engaged, idempotent
+        }
+        
+        const checkbox = this._findCheckboxForPrefix(prefix);
+        if (checkbox) {
+            checkbox.checked = true;
+            // Trigger the change handler to update state and emit event
+            checkbox.dispatchEvent(new Event('change'));
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Disengage (deselect/uncheck) a prefix
+     * @param {string} prefix - The prefix to disengage
+     * @returns {boolean} True if state changed, false if already disengaged or not found
+     */
+    disengagePrefix(prefix) {
+        if (!this.hasPrefix(prefix)) {
+            return false; // Not in list, nothing to do
+        }
+        if (!this.isEngaged(prefix)) {
+            return false; // Already disengaged, idempotent
+        }
+        
+        const checkbox = this._findCheckboxForPrefix(prefix);
+        if (checkbox) {
+            checkbox.checked = false;
+            // Trigger the change handler to update state and emit event
+            checkbox.dispatchEvent(new Event('change'));
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Toggle a prefix on/off, or force to a specific state
+     * @param {string} prefix - The prefix to toggle
+     * @param {boolean} [state] - Optional: true to engage, false to disengage
+     * @returns {boolean} True if state changed
+     */
+    togglePrefix(prefix, state) {
+        if (!this.hasPrefix(prefix)) {
+            console.warn(`togglePrefix: prefix '${prefix}' not in list`);
+            return false;
+        }
+        
+        // Determine target state
+        const currentlyEngaged = this.isEngaged(prefix);
+        const targetState = (state === undefined) ? !currentlyEngaged : state;
+        
+        if (targetState === currentlyEngaged) {
+            return false; // No change needed
+        }
+        
+        return targetState ? this.engagePrefix(prefix) : this.disengagePrefix(prefix);
+    }
+    
+    /**
+     * Disengage all prefixes (turn them all off but keep in list)
+     * @returns {number} Number of prefixes that were disengaged
+     */
+    disengageAll() {
+        const prefixesToDisengage = Object.keys(this.chosen);
+        let count = 0;
+        
+        for (const prefix of prefixesToDisengage) {
+            if (this.disengagePrefix(prefix)) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Engage all prefixes (turn them all on)
+     * @returns {number} Number of prefixes that were engaged
+     */
+    engageAll() {
+        const prefixesToEngage = Object.keys(this.all);
+        let count = 0;
+        
+        for (const prefix of prefixesToEngage) {
+            if (this.engagePrefix(prefix)) {
+                count++;
+            }
+        }
+        
+        return count;
+    }
+    
+    /**
+     * Remove a prefix from the list entirely
+     * @param {string} prefix - The prefix to remove
+     * @returns {boolean} True if removed, false if not found
+     */
+    rmPrefix(prefix) {
+        if (!this.hasPrefix(prefix)) {
+            return false;
+        }
+        
+        const expansion = this.all[prefix];
+        const wasEngaged = this.isEngaged(prefix);
+        
+        // Remove from DOM
+        const label = this._findLabelForPrefix(prefix);
+        if (label) {
+            label.remove();
+        }
+        
+        // Remove from state
+        delete this.all[prefix];
+        delete this.chosen[prefix];
+        
+        // Emit event
+        this.dispatchEvent(new CustomEvent('prefix-removed', {
+            detail: { prefix, expansion, wasEngaged },
+            bubbles: true,
+            composed: true
+        }));
+        
+        return true;
+    }
+    
+    /**
+     * Remove all prefixes from the list
+     * @returns {number} Number of prefixes removed
+     */
+    clearAll() {
+        const prefixesToRemove = Object.keys(this.all);
+        let count = 0;
+        
+        for (const prefix of prefixesToRemove) {
+            if (this.rmPrefix(prefix)) {
+                count++;
+            }
+        }
+        
+        return count;
     }
     
     // Lifecycle callbacks

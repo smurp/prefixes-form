@@ -1,19 +1,6 @@
 # prefixes-form
 
-A standalone web component for managing RDF namespace prefixes with built-in common vocabularies. Part of the MMM (Merged Mental Model) ecosystem.
-
-![npm version](https://img.shields.io/npm/v/@mmmlib/prefixes-form.svg)
-![license](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)
-
-## Features
-
-- 🎯 **Zero dependencies** - Pure web component, no framework required
-- 📦 **Pre-loaded vocabularies** - Includes common RDF prefixes (FOAF, DC, Schema.org, etc.)
-- 🔄 **Dual integration** - Works standalone or integrates with knowledge base systems
-- 📢 **Event-driven** - Emits custom events for all prefix operations
-- 🎨 **Shadow DOM** - Fully encapsulated styling
-- ✨ **Dynamic management** - Add, enable/disable prefixes on the fly
-- 🎛️ **Three configuration modes** - Default, empty, or declarative initialization
+A Web Component for managing RDF namespace prefixes with checkbox-based engagement, suitable for semantic web applications.
 
 ## Installation
 
@@ -21,33 +8,23 @@ A standalone web component for managing RDF namespace prefixes with built-in com
 npm install @mmmlib/prefixes-form
 ```
 
-Or use directly from CDN:
+Or from GitHub:
 
-```html
-<script type="module" src="https://unpkg.com/@mmmlib/prefixes-form/dist/prefixes-form.min.js"></script>
+```bash
+npm install github:smurp/prefixes-form
 ```
 
-## Usage
-
-### Basic Usage
+## Basic Usage
 
 ```html
-<!DOCTYPE html>
-<html>
-<head>
-    <script type="module" src="path/to/prefixes-form.js"></script>
-</head>
-<body>
-    <prefixes-form></prefixes-form>
-</body>
-</html>
+<script type="module" src="prefixes-form.js"></script>
+
+<prefixes-form></prefixes-form>
 ```
 
-### Three Configuration Modes
+## Initialization Modes
 
-The `<prefixes-form>` component supports three distinct initialization modes:
-
-#### 1. Default Mode (Standard RDF Prefixes)
+### 1. Default Mode (Standard RDF Prefixes)
 
 Empty tag loads common RDF prefixes automatically:
 
@@ -57,7 +34,7 @@ Empty tag loads common RDF prefixes automatically:
 
 Includes: `dc`, `foaf`, `rdf`, `rdfs`, `schema`, `skos`, `wp`, `owl2`
 
-#### 2. Empty Mode (User Builds From Scratch)
+### 2. Empty Mode (User Builds From Scratch)
 
 Start completely blank for domain-specific applications:
 
@@ -65,9 +42,9 @@ Start completely blank for domain-specific applications:
 <prefixes-form empty></prefixes-form>
 ```
 
-No prefixes are pre-loaded. Users add all prefixes manually.
+No prefixes are pre-loaded. Users add all prefixes manually or programmatically.
 
-#### 3. Declarative Mode (Custom Prefix Set)
+### 3. Declarative Mode (Custom Prefix Set)
 
 Pre-configure with specific prefixes using `<prefix-entry>` elements:
 
@@ -86,7 +63,7 @@ Pre-configure with specific prefixes using `<prefix-entry>` elements:
 - `selected` (optional) - Pre-check this prefix
 - `tooltip` or `title` (optional) - Helpful description shown on hover
 
-### With Knowledge Base Integration
+## With Knowledge Base Integration
 
 ```javascript
 const prefixesForm = document.querySelector('prefixes-form');
@@ -106,7 +83,7 @@ prefixesForm.kb = {
 };
 ```
 
-### Event Handling
+## Event Handling
 
 ```javascript
 const form = document.querySelector('prefixes-form');
@@ -124,9 +101,14 @@ form.addEventListener('prefix-enabled', (e) => {
 form.addEventListener('prefix-disabled', (e) => {
     console.log('Disabled:', e.detail.prefix);
 });
+
+// Listen for prefix removal
+form.addEventListener('prefix-removed', (e) => {
+    console.log('Removed:', e.detail.prefix, 'wasEngaged:', e.detail.wasEngaged);
+});
 ```
 
-### Programmatic Access
+## Programmatic Access
 
 ```javascript
 const form = document.querySelector('prefixes-form');
@@ -135,15 +117,68 @@ const form = document.querySelector('prefixes-form');
 const selected = form.getSelectedPrefixes();
 // Returns: { "dc": "http://purl.org/dc/elements/1.1/", ... }
 
-// Get all available prefixes
+// Get all available prefixes (selected or not)
 const all = form.getAllPrefixes();
 
-// Add prefixes programmatically
+// Add prefixes programmatically (engaged/selected)
 form.addPrefix('custom', 'http://example.com/custom#');
 form.addPrefixes({
     'app': 'http://myapp.com/ns#',
     'data': 'http://myapp.com/data#'
 });
+
+// Add prefixes without engaging (available but unchecked)
+form.fillAll({
+    'extra': 'http://example.com/extra#'
+});
+
+// Check state
+form.hasPrefix('dc');      // true if in list
+form.isEngaged('dc');      // true if checked
+```
+
+## Engagement Control
+
+Control which prefixes are selected (checked) without removing them from the list:
+
+```javascript
+const form = document.querySelector('prefixes-form');
+
+// Engage (check) a specific prefix
+form.engagePrefix('foaf');        // Returns true if state changed
+
+// Disengage (uncheck) a specific prefix  
+form.disengagePrefix('foaf');     // Returns true if state changed
+
+// Toggle a prefix (flip current state)
+form.togglePrefix('foaf');        // Returns true if state changed
+
+// Force to a specific state
+form.togglePrefix('foaf', true);  // Force engaged
+form.togglePrefix('foaf', false); // Force disengaged
+
+// Disengage all prefixes (uncheck all but keep in list)
+const count = form.disengageAll();
+console.log(`Disengaged ${count} prefixes`);
+
+// Engage all prefixes (check all)
+const count = form.engageAll();
+console.log(`Engaged ${count} prefixes`);
+```
+
+## Removal
+
+Remove prefixes from the list entirely:
+
+```javascript
+const form = document.querySelector('prefixes-form');
+
+// Remove a single prefix
+form.rmPrefix('custom');  // Returns true if removed
+
+// Remove all prefixes
+const count = form.clearAll();
+console.log(`Removed ${count} prefixes`);
 ```
 
 ## API Reference
@@ -151,48 +186,65 @@ form.addPrefixes({
 ### Properties
 
 - **`kb`** - Knowledge base object for integration (optional)
+- **`all`** - Object containing all prefix:IRI pairs (read-only recommended)
+- **`chosen`** - Object containing selected prefix:IRI pairs (read-only recommended)
 
-### Methods
+### Query Methods
 
-- **`addPrefix(prefix, iri)`** - Add a single prefix
-- **`addPrefixes(prefixesObject)`** - Add multiple prefixes from an object
-- **`getSelectedPrefixes()`** - Returns object of currently selected prefixes
-- **`getAllPrefixes()`** - Returns object of all available prefixes
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `getSelectedPrefixes()` | `Object` | Currently selected (checked) prefixes |
+| `getAllPrefixes()` | `Object` | All available prefixes |
+| `hasPrefix(prefix)` | `boolean` | Whether prefix exists in list |
+| `isEngaged(prefix)` | `boolean` | Whether prefix is currently checked |
+
+### Add Methods
+
+| Method | Description |
+|--------|-------------|
+| `addPrefix(prefix, iri)` | Add a single prefix (engaged) |
+| `addPrefixes(prefixesObj)` | Add multiple prefixes (engaged) |
+| `fillChosen(prefixesObj)` | Add prefixes as selected (idempotent) |
+| `fillAll(prefixesObj)` | Add prefixes as available but unchecked (idempotent) |
+
+### Engagement Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `engagePrefix(prefix)` | `boolean` | Check a prefix, returns true if state changed |
+| `disengagePrefix(prefix)` | `boolean` | Uncheck a prefix, returns true if state changed |
+| `togglePrefix(prefix, [state])` | `boolean` | Toggle or force state, returns true if changed |
+| `engageAll()` | `number` | Check all prefixes, returns count changed |
+| `disengageAll()` | `number` | Uncheck all prefixes, returns count changed |
+
+### Removal Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `rmPrefix(prefix)` | `boolean` | Remove prefix from list entirely |
+| `clearAll()` | `number` | Remove all prefixes, returns count removed |
 
 ### Events
 
 All events bubble and are composed (cross shadow DOM boundaries).
 
-- **`prefix-added`** - Fired when a new prefix is manually added
-  - `detail: { prefix: string, expansion: string }`
-- **`prefix-enabled`** - Fired when a prefix checkbox is checked
-  - `detail: { prefix: string, expansion: string }`
-- **`prefix-disabled`** - Fired when a prefix checkbox is unchecked
-  - `detail: { prefix: string, expansion: string }`
+| Event | Detail | Description |
+|-------|--------|-------------|
+| `prefix-added` | `{prefix, expansion}` | New prefix added via UI |
+| `prefix-enabled` | `{prefix, expansion}` | Prefix checked |
+| `prefix-disabled` | `{prefix, expansion}` | Prefix unchecked |
+| `prefix-removed` | `{prefix, expansion, wasEngaged}` | Prefix removed from list |
 
-## Built-in Prefix Collections
+## TypeScript Support
 
-The component includes three prefix collections:
+Type definitions are included in `index.d.ts`.
 
-### DEFAULT_CHOSEN
-A curated set of commonly used prefixes that are pre-selected:
-- `dc` - Dublin Core
-- `foaf` - Friend of a Friend
-- `rdf` - RDF Schema
-- `rdfs` - RDF Schema
-- `schema` - Schema.org
-- `skos` - Simple Knowledge Organization System
-- `wp` - Wikipedia
-- `owl2` - Web Ontology Language 2
+```typescript
+import { PrefixesForm } from '@mmmlib/prefixes-form';
 
-### DEFAULT_ALL
-Additional prefixes available by default:
-- `owl` - Web Ontology Language
-- `void` - Vocabulary of Interlinked Datasets
-
-### COMMON_PREFIXES
-An extensive collection of 40+ common RDF/Linked Data prefixes including:
-ActivityStreams, BIBO, Creative Commons, DBpedia, EXIF, GoodRelations, IIIF, LDP, MPEG7, OA, PCDM, PROV, SIOC, SNOMEDCT, and many more.
+const form = document.querySelector('prefixes-form') as PrefixesForm;
+const selected: Record<string, string> = form.getSelectedPrefixes();
+```
 
 ## Development
 
@@ -201,38 +253,11 @@ ActivityStreams, BIBO, Creative Commons, DBpedia, EXIF, GoodRelations, IIIF, LDP
 git clone https://github.com/smurp/prefixes-form.git
 cd prefixes-form
 
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build minified version
-npm run build
+# Open examples in browser
+open example/test-modes.html
+open example/test-api.html
 ```
-
-## Browser Support
-
-Works in all modern browsers that support:
-- Custom Elements v1
-- Shadow DOM v1
-- ES6 Classes
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-AGPL-3.0-or-later © smurp
-
-This component is licensed under the GNU Affero General Public License version 3 or later. This means:
-- You can use, modify, and distribute this component
-- If you modify and run it on a server, you must provide the source code to users
-- Any software that incorporates this component must also be released under AGPL-3.0-or-later
-
-See the LICENSE file for full details.
-
-## Related Projects
-
-- [mmmlib](https://github.com/smurp/mmmlib) - The parent MMM ecosystem library
+MIT

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prefixes Form - API Test</title>
+    <script type="module" src="../src/prefixes-form.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 2em;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .container {
+            display: flex;
+            gap: 2em;
+        }
+        .form-section {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 1em;
+            min-width: 300px;
+        }
+        .controls-section {
+            flex: 1;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5em;
+        }
+        h2 { 
+            margin-top: 0;
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 0.5em;
+        }
+        .btn-group {
+            margin-bottom: 1.5em;
+        }
+        .btn-group h3 {
+            margin: 0 0 0.5em 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+        button {
+            margin: 0.25em;
+            padding: 0.5em 1em;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        button.danger {
+            background: #cc3333;
+        }
+        button.danger:hover {
+            background: #aa2222;
+        }
+        button.success {
+            background: #33aa33;
+        }
+        button.success:hover {
+            background: #228822;
+        }
+        .prefix-input {
+            margin: 0.5em 0;
+        }
+        .prefix-input input {
+            padding: 0.4em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 0.5em;
+        }
+        .prefix-input input[name="prefix"] {
+            width: 80px;
+        }
+        .prefix-input input[name="expansion"] {
+            width: 200px;
+        }
+        .output {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 1em;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .events-log {
+            background: #fffef0;
+            border: 1px solid #e0d800;
+        }
+        .events-log .event {
+            margin: 0.25em 0;
+            padding: 0.25em 0.5em;
+            border-radius: 3px;
+        }
+        .events-log .event.enabled {
+            background: #e0ffe0;
+        }
+        .events-log .event.disabled {
+            background: #fff0e0;
+        }
+        .events-log .event.added {
+            background: #e0e0ff;
+        }
+        .events-log .event.removed {
+            background: #ffe0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔖 Prefixes Form - API Test</h1>
+    
+    <div class="container">
+        <div class="form-section">
+            <h2>Component</h2>
+            <prefixes-form id="form"></prefixes-form>
+        </div>
+        
+        <div class="controls-section">
+            <h2>API Controls</h2>
+            
+            <div class="btn-group">
+                <h3>Query Methods</h3>
+                <button onclick="showSelected()">getSelectedPrefixes()</button>
+                <button onclick="showAll()">getAllPrefixes()</button>
+                <button onclick="checkPrefix()">hasPrefix()</button>
+                <button onclick="checkEngaged()">isEngaged()</button>
+            </div>
+            
+            <div class="btn-group">
+                <h3>Engagement Control</h3>
+                <div class="prefix-input">
+                    <input type="text" id="targetPrefix" name="prefix" placeholder="prefix" value="dc">
+                </div>
+                <button class="success" onclick="engage()">engagePrefix()</button>
+                <button onclick="disengage()">disengagePrefix()</button>
+                <button onclick="toggle()">togglePrefix()</button>
+                <button onclick="toggleOn()">togglePrefix(true)</button>
+                <button onclick="toggleOff()">togglePrefix(false)</button>
+            </div>
+            
+            <div class="btn-group">
+                <h3>Bulk Operations</h3>
+                <button class="success" onclick="engageAll()">engageAll()</button>
+                <button onclick="disengageAll()">disengageAll()</button>
+                <button class="danger" onclick="clearAll()">clearAll()</button>
+            </div>
+            
+            <div class="btn-group">
+                <h3>Add / Remove</h3>
+                <div class="prefix-input">
+                    <input type="text" id="newPrefix" name="prefix" placeholder="prefix" value="ex">
+                    <input type="text" id="newExpansion" name="expansion" placeholder="expansion" value="http://example.org/">
+                </div>
+                <button class="success" onclick="addEngaged()">addPrefix() [engaged]</button>
+                <button onclick="addAvailable()">fillAll() [available]</button>
+                <button class="danger" onclick="removePrefix()">rmPrefix()</button>
+            </div>
+            
+            <div class="btn-group">
+                <h3>Output</h3>
+                <div id="output" class="output">Click a button to see results...</div>
+            </div>
+            
+            <div class="btn-group">
+                <h3>Event Log</h3>
+                <button onclick="clearLog()">Clear Log</button>
+                <div id="events" class="output events-log"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('form');
+        const output = document.getElementById('output');
+        const events = document.getElementById('events');
+        
+        // Set up event listeners
+        form.addEventListener('prefix-enabled', (e) => {
+            logEvent('enabled', `✅ Enabled: ${e.detail.prefix}`);
+        });
+        
+        form.addEventListener('prefix-disabled', (e) => {
+            logEvent('disabled', `⬜ Disabled: ${e.detail.prefix}`);
+        });
+        
+        form.addEventListener('prefix-added', (e) => {
+            logEvent('added', `➕ Added: ${e.detail.prefix} → ${e.detail.expansion}`);
+        });
+        
+        form.addEventListener('prefix-removed', (e) => {
+            logEvent('removed', `🗑️ Removed: ${e.detail.prefix} (wasEngaged: ${e.detail.wasEngaged})`);
+        });
+        
+        function logEvent(type, message) {
+            const div = document.createElement('div');
+            div.className = `event ${type}`;
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            events.insertBefore(div, events.firstChild);
+        }
+        
+        function clearLog() {
+            events.innerHTML = '';
+        }
+        
+        function showOutput(label, data) {
+            if (typeof data === 'object') {
+                output.textContent = `${label}:\n${JSON.stringify(data, null, 2)}`;
+            } else {
+                output.textContent = `${label}: ${data}`;
+            }
+        }
+        
+        function getTarget() {
+            return document.getElementById('targetPrefix').value;
+        }
+        
+        // Query methods
+        function showSelected() {
+            showOutput('getSelectedPrefixes()', form.getSelectedPrefixes());
+        }
+        
+        function showAll() {
+            showOutput('getAllPrefixes()', form.getAllPrefixes());
+        }
+        
+        function checkPrefix() {
+            const prefix = getTarget();
+            showOutput(`hasPrefix('${prefix}')`, form.hasPrefix(prefix));
+        }
+        
+        function checkEngaged() {
+            const prefix = getTarget();
+            showOutput(`isEngaged('${prefix}')`, form.isEngaged(prefix));
+        }
+        
+        // Engagement methods
+        function engage() {
+            const prefix = getTarget();
+            const result = form.engagePrefix(prefix);
+            showOutput(`engagePrefix('${prefix}')`, `returned ${result}`);
+        }
+        
+        function disengage() {
+            const prefix = getTarget();
+            const result = form.disengagePrefix(prefix);
+            showOutput(`disengagePrefix('${prefix}')`, `returned ${result}`);
+        }
+        
+        function toggle() {
+            const prefix = getTarget();
+            const result = form.togglePrefix(prefix);
+            showOutput(`togglePrefix('${prefix}')`, `returned ${result}`);
+        }
+        
+        function toggleOn() {
+            const prefix = getTarget();
+            const result = form.togglePrefix(prefix, true);
+            showOutput(`togglePrefix('${prefix}', true)`, `returned ${result}`);
+        }
+        
+        function toggleOff() {
+            const prefix = getTarget();
+            const result = form.togglePrefix(prefix, false);
+            showOutput(`togglePrefix('${prefix}', false)`, `returned ${result}`);
+        }
+        
+        // Bulk operations
+        function engageAll() {
+            const result = form.engageAll();
+            showOutput('engageAll()', `${result} prefixes engaged`);
+        }
+        
+        function disengageAll() {
+            const result = form.disengageAll();
+            showOutput('disengageAll()', `${result} prefixes disengaged`);
+        }
+        
+        function clearAll() {
+            if (confirm('Remove all prefixes?')) {
+                const result = form.clearAll();
+                showOutput('clearAll()', `${result} prefixes removed`);
+            }
+        }
+        
+        // Add/Remove
+        function addEngaged() {
+            const prefix = document.getElementById('newPrefix').value;
+            const expansion = document.getElementById('newExpansion').value;
+            form.addPrefix(prefix, expansion);
+            showOutput(`addPrefix('${prefix}', '${expansion}')`, 'added and engaged');
+        }
+        
+        function addAvailable() {
+            const prefix = document.getElementById('newPrefix').value;
+            const expansion = document.getElementById('newExpansion').value;
+            form.fillAll({ [prefix]: expansion });
+            showOutput(`fillAll({'${prefix}': '${expansion}'})`, 'added but not engaged');
+        }
+        
+        function removePrefix() {
+            const prefix = getTarget();
+            const result = form.rmPrefix(prefix);
+            showOutput(`rmPrefix('${prefix}')`, `returned ${result}`);
+        }
+    </script>
+</body>
+</html>
