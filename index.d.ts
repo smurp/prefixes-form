@@ -1,4 +1,4 @@
-declare module '@mmmlib/prefixes-form' {
+declare module '@mmmttoys/prefixes-form' {
     export interface PrefixDetail {
         prefix: string;
         expansion: string;

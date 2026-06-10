@@ -1,5 +1,5 @@
 {
-  "name": "@mmmlib/prefixes-form",
+  "name": "@mmmttoys/prefixes-form",
   "version": "1.1.4",
   "description": "A web component for managing RDF namespace prefixes with built-in common vocabularies",
   "main": "dist/prefixes-form.js",
