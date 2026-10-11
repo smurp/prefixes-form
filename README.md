@@ -50,7 +50,7 @@ Pre-configure with specific prefixes using `<prefix-entry>` elements:
 
 ```html
 <prefixes-form>
-    <prefix-entry prefix="ex" expansion="http://example.com/" />
+    <prefix-entry prefix="ex" expansion="http://example.org/" />
     <prefix-entry prefix="myapp" expansion="http://myapp.org/ns#" selected />
     <prefix-entry prefix="data" expansion="http://myapp.org/data#" 
                   tooltip="Application data namespace" selected />
@@ -71,7 +71,7 @@ const prefixesForm = document.querySelector('prefixes-form');
 // Set up a knowledge base object
 prefixesForm.kb = {
     prefixes: {
-        "ex": "http://example.com/",
+        "ex": "http://example.org/",
         "myapp": "http://myapp.org/ontology#"
     },
     addPrefix: (prefix, expansion) => {
@@ -121,7 +121,7 @@ const selected = form.getSelectedPrefixes();
 const all = form.getAllPrefixes();
 
 // Add prefixes programmatically (engaged/selected)
-form.addPrefix('custom', 'http://example.com/custom#');
+form.addPrefix('custom', 'http://example.org/custom#');
 form.addPrefixes({
     'app': 'http://myapp.com/ns#',
     'data': 'http://myapp.com/data#'
@@ -129,7 +129,7 @@ form.addPrefixes({
 
 // Add prefixes without engaging (available but unchecked)
 form.fillAll({
-    'extra': 'http://example.com/extra#'
+    'extra': 'http://example.org/extra#'
 });
 
 // Check state
