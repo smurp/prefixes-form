@@ -63,6 +63,17 @@ Pre-configure with specific prefixes using `<prefix-entry>` elements:
 - `selected` (optional) - Pre-check this prefix
 - `tooltip` or `title` (optional) - Helpful description shown on hover
 
+### The heading
+
+The form titles itself **Prefixes**. A host that names the list otherwise
+says so with `heading`, and a host that titles the dialog around the form
+leaves the form's own title out with an empty one:
+
+```html
+<prefixes-form heading="Vocabularies"></prefixes-form>
+<prefixes-form empty heading=""></prefixes-form>
+```
+
 ## With Knowledge Base Integration
 
 ```javascript

@@ -5,7 +5,24 @@
  */
 class PrefixesForm extends HTMLElement {
     static get observedAttributes() {
-        return ['empty'];
+        return ['empty', 'heading'];
+    }
+
+    /**
+     * HEADING: the form's own title, "Prefixes" unless the host says
+     * otherwise — `heading="Vocabularies"` names it, and `heading=""`
+     * leaves it out, for a host that titles the dialog the form sits in.
+     */
+    attributeChangedCallback(name) {
+        if (name === 'heading') this._applyHeading();
+    }
+
+    _applyHeading() {
+        const h = this.shadowRoot?.querySelector('form > h3');
+        if (!h) return;
+        const given = this.getAttribute('heading');
+        h.textContent = given ?? 'Prefixes';
+        h.hidden = given === '';
     }
     
     constructor() {
@@ -671,6 +688,7 @@ class PrefixesForm extends HTMLElement {
     
     // Lifecycle callbacks
     connectedCallback() {
+        this._applyHeading();
         // Check for declarative prefix-entry children
         const entries = this.querySelectorAll('prefix-entry');
         const isEmpty = this.hasAttribute('empty');
